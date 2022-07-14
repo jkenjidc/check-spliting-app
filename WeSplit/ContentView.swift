@@ -12,6 +12,9 @@ struct ContentView: View {
     @State private var numberOfPeople = 2
     @State private var tipPercentage = 20
     @FocusState private var amountIsFocused: Bool
+    var currencyType: FloatingPointFormatStyle<Double>.Currency{
+        return .currency(code: Locale.current.currencyCode ?? "USD")
+    }
     let tipPercentages = [0,10,15,20,25]
     var totalPerPerson: Double {
         let peopleCount = Double(numberOfPeople + 2)
@@ -22,12 +25,18 @@ struct ContentView: View {
         let amountPerPerson = grandTotal / peopleCount
         return amountPerPerson
     }
+    var totalAmount: Double{
+        let tipSelection = Double(tipPercentage)
+        let tipValue = checkAmount / 100 * tipSelection
+        let grandTotal = checkAmount + tipValue
+        return grandTotal
+    }
     var body: some View {
         NavigationView{
             Form{
                 Section{
                     TextField("Amount", value: $checkAmount, format:
-                            .currency(code: Locale.current.currencyCode ?? "USD"))
+                            currencyType)
                             .keyboardType(.decimalPad)
                             .focused($amountIsFocused)
                     Picker("Number of people", selection: $numberOfPeople){
@@ -38,16 +47,22 @@ struct ContentView: View {
                 }
                 Section{
                     Picker("Tip percentage", selection: $tipPercentage){
-                        ForEach(tipPercentages, id: \.self){
+                        ForEach(0..<101){
                             Text($0, format: .percent)
                         }
                     }
-                    .pickerStyle(.segmented)
                 }header: {
                     Text("How much tip do you want?")
                 }
                 Section{
-                    Text(totalPerPerson, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                    Text(totalAmount, format: currencyType)
+                }header: {
+                    Text("Total amount")
+                }
+                Section{
+                    Text(totalPerPerson, format: currencyType)
+                }header: {
+                    Text("Amount per person")
                 }
             }
             .navigationTitle("weSplit")
